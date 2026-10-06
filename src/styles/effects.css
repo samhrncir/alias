@@ -1,0 +1,224 @@
+@layer effects {
+  /* ---- atmosphere: per-theme backdrop, horizon floor, synthwave sun -------- */
+
+  .atmosphere {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--backdrop);
+  }
+
+  .atmo-floor {
+    position: absolute;
+    inset: 58% -60% -20%;
+    background-image:
+      linear-gradient(var(--floor-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--floor-color) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity: var(--floor-opacity);
+    transform: perspective(360px) rotateX(58deg);
+    transform-origin: 50% 0;
+    mask-image: linear-gradient(to bottom, transparent, #000 35%);
+    animation: floor-scroll 5s linear infinite;
+  }
+
+  .atmo-sun {
+    display: none;
+  }
+
+  [data-theme='synthwave'] .atmo-sun {
+    display: block;
+    position: absolute;
+    top: calc(58% - 40vmin);
+    left: 50%;
+    width: 46vmin;
+    height: 46vmin;
+    border-radius: 50%;
+    translate: -50% 0;
+    background: linear-gradient(180deg, #ffd319 0%, #ff8b38 38%, #ff2975 72%, #c900ff 100%);
+    /* Solid top half, sliced bottom half: the classic retro sun. */
+    mask-image:
+      linear-gradient(180deg, #000 52%, transparent 52%),
+      repeating-linear-gradient(180deg, #000 0 9px, transparent 9px 14px);
+    opacity: 0.5;
+    filter: drop-shadow(0 0 42px rgb(255 41 117 / 0.6));
+  }
+
+  @keyframes floor-scroll {
+    to {
+      background-position:
+        0 64px,
+        0 0;
+    }
+  }
+
+  /* ---- scanlines + vignette over everything (dialogs sit above, in the top layer) ---- */
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 45%, transparent 58%, rgb(0 0 0 / 0.42) 100%),
+      repeating-linear-gradient(180deg, rgb(0 0 0 / var(--scan-alpha)) 0 1px, transparent 1px 3px);
+  }
+
+  [data-theme='netrunner'] body::after {
+    animation: crt-flicker 7s steps(1) infinite;
+  }
+
+  @keyframes crt-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    41% {
+      opacity: 0.88;
+    }
+    42% {
+      opacity: 1;
+    }
+    77% {
+      opacity: 0.93;
+    }
+    78% {
+      opacity: 1;
+    }
+  }
+
+  /* ---- glitch logo ---------------------------------------------------------- */
+
+  .logo {
+    position: relative;
+    display: inline-block;
+    font: 900 28px/1 var(--font-display);
+    letter-spacing: 0.22em;
+    color: transparent;
+    background: var(--logo-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--logo-glow) 50%, transparent));
+  }
+
+  .logo-xl {
+    font-size: 52px;
+  }
+
+  .logo::before,
+  .logo::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .logo::before {
+    color: var(--logo-split-a);
+    clip-path: inset(0 0 100% 0);
+    animation: glitch-top 4.5s steps(1) infinite;
+  }
+
+  .logo::after {
+    color: var(--logo-split-b);
+    clip-path: inset(100% 0 0 0);
+    animation: glitch-bottom 4.5s steps(1) infinite;
+  }
+
+  .logo:hover::before,
+  .logo:hover::after {
+    animation-duration: 0.7s;
+  }
+
+  @keyframes glitch-top {
+    0%,
+    91%,
+    100% {
+      clip-path: inset(0 0 100% 0);
+      translate: 0 0;
+    }
+    92% {
+      clip-path: inset(8% 0 62% 0);
+      translate: -4px -1px;
+    }
+    94% {
+      clip-path: inset(30% 0 42% 0);
+      translate: 3px 0;
+    }
+    96% {
+      clip-path: inset(55% 0 22% 0);
+      translate: -2px 1px;
+    }
+  }
+
+  @keyframes glitch-bottom {
+    0%,
+    91%,
+    100% {
+      clip-path: inset(100% 0 0 0);
+      translate: 0 0;
+    }
+    92.5% {
+      clip-path: inset(60% 0 12% 0);
+      translate: 4px 1px;
+    }
+    95% {
+      clip-path: inset(20% 0 56% 0);
+      translate: -3px 0;
+    }
+    97% {
+      clip-path: inset(72% 0 6% 0);
+      translate: 2px -1px;
+    }
+  }
+
+  /* ---- entrances ----------------------------------------------------------------- */
+
+  .modal[open] {
+    animation: modal-in 0.2s var(--ease);
+  }
+
+  .toast {
+    animation: toast-in 0.22s var(--ease);
+  }
+
+  .cursor {
+    animation: blink 1s steps(1) infinite;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+      scale: 0.985;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      translate: 16px 0;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* ---- reduced motion: keep the look, drop the movement ----------------------------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

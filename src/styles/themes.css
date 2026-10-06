@@ -1,0 +1,139 @@
+/* Cascade order for every stylesheet in the app. */
+@layer tokens, base, components, effects;
+
+/*
+ * Each theme defines the same tokens. Components only read tokens, so a
+ * theme is just a block here. A [data-theme] attribute on any element (not
+ * only <html>) switches that subtree, which is how the theme swatches paint
+ * themselves.
+ */
+@layer tokens {
+  :root {
+    --font-display: 'Orbitron Variable', 'Orbitron', system-ui, sans-serif;
+    --font-ui: 'Rajdhani', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+    --cut: 12px;
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Night City: acid yellow and electric cyan over near-black. */
+  :root,
+  [data-theme='night-city'] {
+    --bg: #07080d;
+    --bg-raised: #0a0d14;
+    --panel: #0d1118;
+    --panel-hi: #121826;
+    --line: rgb(0 240 255 / 0.16);
+    --line-hi: rgb(0 240 255 / 0.42);
+    --primary: #00f0ff;
+    --primary-soft: rgb(0 240 255 / 0.1);
+    --cta: #fcee0a;
+    --cta-end: #fcee0a;
+    --cta-ink: #0b0b00;
+    --accent: #ff2a6d;
+    --ok: #39ff88;
+    --warn: #ffb000;
+    --danger: #ff2a6d;
+    --diff-add: #39ff88;
+    --diff-del: #ff2a6d;
+    --text: #d7e3ff;
+    --text-strong: #ffffff;
+    --muted: #7a88a8;
+    --code-string: #fcee0a;
+    --selection: rgb(0 240 255 / 0.28);
+    --glow: 0 0 18px rgb(0 240 255 / 0.25);
+    --logo-gradient: linear-gradient(180deg, #fff9a6, #fcee0a 55%, #e2c400);
+    --logo-glow: #fcee0a;
+    --logo-split-a: #00f0ff;
+    --logo-split-b: #ff2a6d;
+    --grid-color: rgb(0 240 255 / 0.05);
+    --floor-color: rgb(0 240 255 / 0.4);
+    --floor-opacity: 0.4;
+    --scan-alpha: 0.2;
+    --backdrop:
+      radial-gradient(1100px 520px at 85% -8%, rgb(0 240 255 / 0.12), transparent 62%),
+      radial-gradient(900px 480px at -8% 108%, rgb(255 42 109 / 0.11), transparent 60%),
+      linear-gradient(var(--grid-color) 1px, transparent 1px) 0 0 / 46px 46px,
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px) 0 0 / 46px 46px,
+      var(--bg);
+  }
+
+  /* Synthwave: magenta neon, sunset gradients, a retro horizon. */
+  [data-theme='synthwave'] {
+    --bg: #0d0221;
+    --bg-raised: #120530;
+    --panel: #160a33;
+    --panel-hi: #1e0f45;
+    --line: rgb(255 47 214 / 0.2);
+    --line-hi: rgb(255 47 214 / 0.5);
+    --primary: #ff2fd6;
+    --primary-soft: rgb(255 47 214 / 0.12);
+    --cta: #ff6c11;
+    --cta-end: #ff3864;
+    --cta-ink: #1a0400;
+    --accent: #2de2e6;
+    --ok: #2de2e6;
+    --warn: #f9c80e;
+    --danger: #ff3864;
+    --diff-add: #2de2e6;
+    --diff-del: #ff3864;
+    --text: #f5e9ff;
+    --text-strong: #ffffff;
+    --muted: #9a86c8;
+    --code-string: #f9c80e;
+    --selection: rgb(255 47 214 / 0.3);
+    --glow: 0 0 20px rgb(255 47 214 / 0.3);
+    --logo-gradient: linear-gradient(180deg, #fff3a0 5%, #ffb43a 35%, #ff3864 65%, #c22cff 95%);
+    --logo-glow: #ff2fd6;
+    --logo-split-a: #2de2e6;
+    --logo-split-b: #ff6c11;
+    --grid-color: rgb(255 47 214 / 0.04);
+    --floor-color: rgb(255 47 214 / 0.8);
+    --floor-opacity: 0.55;
+    --scan-alpha: 0.16;
+    --backdrop:
+      radial-gradient(1000px 420px at 50% 60%, rgb(255 56 100 / 0.2), transparent 65%),
+      linear-gradient(180deg, #0d0221 0%, #170531 38%, #2b0a4a 58%, #0d0221 58.4%, #0d0221 100%);
+  }
+
+  /* Netrunner: green phosphor terminal, heavy scanlines. */
+  [data-theme='netrunner'] {
+    --font-ui: var(--font-mono);
+    --bg: #020403;
+    --bg-raised: #040906;
+    --panel: #06100a;
+    --panel-hi: #0a1a10;
+    --line: rgb(0 255 156 / 0.16);
+    --line-hi: rgb(0 255 156 / 0.45);
+    --primary: #00ff9c;
+    --primary-soft: rgb(0 255 156 / 0.09);
+    --cta: #00ff9c;
+    --cta-end: #00e5ff;
+    --cta-ink: #001a0f;
+    --accent: #00e5ff;
+    --ok: #00ff9c;
+    --warn: #ffb000;
+    --danger: #ff4d4d;
+    --diff-add: #00ff9c;
+    --diff-del: #ff4d4d;
+    --text: #c8ffe0;
+    --text-strong: #eafff3;
+    --muted: #5f8f74;
+    --code-string: #00e5ff;
+    --selection: rgb(0 255 156 / 0.25);
+    --glow: 0 0 16px rgb(0 255 156 / 0.28);
+    --logo-gradient: linear-gradient(180deg, #b6ffdd, #00ff9c 60%, #00b36d);
+    --logo-glow: #00ff9c;
+    --logo-split-a: #00e5ff;
+    --logo-split-b: #ff4d4d;
+    --grid-color: rgb(0 255 156 / 0.045);
+    --floor-color: transparent;
+    --floor-opacity: 0;
+    --scan-alpha: 0.32;
+    --backdrop:
+      radial-gradient(120% 90% at 50% 35%, rgb(0 255 156 / 0.07), transparent 70%),
+      linear-gradient(var(--grid-color) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--bg);
+  }
+}

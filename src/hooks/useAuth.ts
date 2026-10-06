@@ -19,6 +19,15 @@ function client() {
   return supabase
 }
 
+/**
+ * Where email links send you back to. Keep the trailing slash: Supabase matches
+ * this string against allow-list globs like `https://host/**`, which a bare
+ * origin doesn't match, and then it silently falls back to the Site URL.
+ */
+export function emailRedirectUrl(origin: string): string {
+  return new URL('/', origin).href
+}
+
 export function useAuth(): Auth {
   const [session, setSession] = useState<Session | null>(null)
   const [ready, setReady] = useState(supabase === null)
@@ -45,7 +54,7 @@ export function useAuth(): Auth {
       const { data, error } = await client().auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: emailRedirectUrl(window.location.origin) },
       })
       if (error) throw error
       return data.session ? 'signed-in' : 'confirm-email'
@@ -53,7 +62,7 @@ export function useAuth(): Auth {
     async sendMagicLink(email) {
       const { error } = await client().auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: emailRedirectUrl(window.location.origin) },
       })
       if (error) throw error
     },

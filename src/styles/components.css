@@ -375,6 +375,86 @@
     color: var(--danger);
   }
 
+  .field-warn {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--warn);
+  }
+
+  .input-sm {
+    min-height: 32px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  .stack-tight {
+    display: grid;
+    gap: 8px;
+  }
+
+  /* ---- copy-to-clipboard code, file path ------------------------------------ */
+
+  .copy-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 1px 7px;
+    border: 1px dashed var(--line-hi);
+    font: inherit;
+    text-align: left;
+    vertical-align: baseline;
+    color: var(--text-strong);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    cursor: copy;
+    transition: border-color 0.15s;
+  }
+
+  .copy-chip code {
+    font-size: 0.9em;
+    word-break: break-all;
+  }
+
+  .copy-chip svg {
+    flex: none;
+    color: var(--muted);
+  }
+
+  .copy-chip:hover {
+    border-color: var(--primary);
+  }
+
+  .copy-chip:hover svg {
+    color: var(--primary);
+  }
+
+  .copy-chip.is-copied {
+    border-style: solid;
+    border-color: var(--ok);
+  }
+
+  .copy-chip.is-copied svg {
+    color: var(--ok);
+  }
+
+  .path-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    min-width: 0;
+  }
+
+  .path-line .input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .path-note {
+    flex-basis: 100%;
+    font-size: 13px;
+  }
+
   .input {
     width: 100%;
     min-height: 40px;
@@ -861,6 +941,10 @@
   .badge-same,
   .badge-off {
     color: var(--muted);
+  }
+
+  .badge-warn {
+    color: var(--warn);
   }
 
   .switch {

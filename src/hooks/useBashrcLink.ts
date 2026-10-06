@@ -45,6 +45,16 @@ export class StaleFileError extends Error {
 
 const UNLINKED: LinkState = { status: 'unlinked', handle: null, fileName: null, text: null, readAt: null, error: null }
 
+const PATH_KEY = 'alias.link-path'
+
+function readPathLabel(): string | null {
+  try {
+    return localStorage.getItem(PATH_KEY)
+  } catch {
+    return null
+  }
+}
+
 async function requireWriteAccess(handle: FileSystemFileHandle): Promise<void> {
   if ((await ensurePermission(handle, 'readwrite', true)) !== 'granted') {
     throw new Error('Alias needs permission to edit the file.')
@@ -62,6 +72,19 @@ export function useBashrcLink() {
   }, [state])
 
   const scan = useMemo<BashrcScan | null>(() => (state.text === null ? null : scanBashrc(state.text)), [state.text])
+
+  // Browsers never reveal where a picked file lives, so the path shown is a label the user can correct.
+  const [pathLabel, setPathLabelState] = useState<string | null>(readPathLabel)
+  const setPathLabel = useCallback((label: string) => {
+    const value = label.trim() || null
+    try {
+      if (value) localStorage.setItem(PATH_KEY, value)
+      else localStorage.removeItem(PATH_KEY)
+    } catch {
+      // Only a label; fine to lose.
+    }
+    setPathLabelState(value)
+  }, [])
 
   /** Reads the file if permission allows. Only prompts when `request` is set, which needs a click. */
   const load = useCallback(async (handle: FileSystemFileHandle, request: boolean): Promise<string | null> => {
@@ -110,9 +133,10 @@ export function useBashrcLink() {
       const handle = kind === 'existing' ? await pickExistingFile() : await pickNewFile()
       if (!handle) return null
       await saveLinkedHandle(handle)
+      setPathLabel('')
       return load(handle, false)
     },
-    [load],
+    [load, setPathLabel],
   )
 
   const reconnect = useCallback(async () => {
@@ -127,8 +151,9 @@ export function useBashrcLink() {
 
   const unlink = useCallback(async () => {
     await forgetLinkedHandle()
+    setPathLabel('')
     setState(UNLINKED)
-  }, [])
+  }, [setPathLabel])
 
   /** Manual mode: read a copy of the file to compare against and export from. */
   const importCopy = useCallback(async (): Promise<string | null> => {
@@ -164,6 +189,8 @@ export function useBashrcLink() {
   return {
     ...state,
     scan,
+    pathLabel,
+    setPathLabel,
     supported: fileAccessSupported,
     link,
     reconnect,

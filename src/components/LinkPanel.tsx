@@ -1,7 +1,9 @@
-import { AlertTriangle, FileCode2, FilePlus2, Link2, RefreshCw, ShieldCheck, Unlink, Upload } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { AlertTriangle, FileCode2, FilePlus2, Link2, Pencil, RefreshCw, ShieldCheck, Unlink, Upload } from 'lucide-react'
 import type { BashrcLink, LinkStatus } from '../hooks/useBashrcLink'
-import { describeBlockProblem } from '../utils/bashrc'
+import { describeBlockProblem, quoteSingle } from '../utils/bashrc'
 import { formatClock } from '../utils/format'
+import { CopyChip } from './CopyChip'
 
 interface Props {
   link: BashrcLink
@@ -21,6 +23,16 @@ const STATUS_CHIP: Record<LinkStatus, [label: string, tone: string]> = {
   manual: ['manual', 'warn'],
 }
 
+/** The home folder, which is where the file dialogs steer you. */
+function assumedPath(name: string): string {
+  return isWindows ? `%USERPROFILE%\\${name}` : `~/${name}`
+}
+
+/** A file name as a shell word, quoted only when it has to be. */
+function shellName(name: string): string {
+  return /^[\w.-]+$/.test(name) ? name : quoteSingle(name)
+}
+
 export function LinkPanel(props: Props) {
   const [label, tone] = STATUS_CHIP[props.link.status]
   return (
@@ -37,6 +49,14 @@ export function LinkPanel(props: Props) {
 }
 
 function LinkBody({ link, onLink, onImportCopy }: Props) {
+  const pathLine = link.fileName && (
+    <PathLine
+      path={link.pathLabel ?? assumedPath(link.fileName)}
+      assumed={link.pathLabel === null}
+      onSave={link.setPathLabel}
+    />
+  )
+
   switch (link.status) {
     case 'checking':
       return <p className="muted">Looking for this PC's linked file…</p>
@@ -56,7 +76,8 @@ function LinkBody({ link, onLink, onImportCopy }: Props) {
           <ul className="hints">
             {isWindows ? (
               <li>
-                In the file dialog, type <code>%USERPROFILE%</code> in the address bar to jump to your home folder.
+                In the file dialog, paste <CopyChip text="%USERPROFILE%" /> into the address bar to jump to your home
+                folder.
               </li>
             ) : (
               <li>
@@ -66,7 +87,11 @@ function LinkBody({ link, onLink, onImportCopy }: Props) {
               </li>
             )}
             <li>
-              <strong>Create</strong> is for PCs without one: choosing an existing file in that dialog empties it.
+              Creating one? Type the name as <code>.bashrc</code>, dot included: Chrome drops the dot from its
+              suggestion. Only create when there's no .bashrc yet; choosing an existing file there empties it.
+            </li>
+            <li>
+              Or create it from Git Bash with <CopyChip text="touch ~/.bashrc" /> and link it.
             </li>
           </ul>
         </div>
@@ -75,9 +100,8 @@ function LinkBody({ link, onLink, onImportCopy }: Props) {
     case 'needs-permission':
       return (
         <div className="stack">
-          <p>
-            Linked to <code>{link.fileName}</code>. The browser needs your OK to open it again.
-          </p>
+          {pathLine}
+          <p>The browser needs your OK to open this file again.</p>
           <button type="button" className="btn" onClick={() => void link.reconnect()}>
             <ShieldCheck size={16} /> Reconnect
           </button>
@@ -94,8 +118,9 @@ function LinkBody({ link, onLink, onImportCopy }: Props) {
     case 'error':
       return (
         <div className="stack">
+          {pathLine}
           <p className="callout callout-error">
-            {link.status === 'missing' ? `${link.fileName ?? 'The file'} was moved or deleted.` : link.error}
+            {link.status === 'missing' ? `${link.fileName ?? 'The file'} was moved, renamed or deleted.` : link.error}
           </p>
           <div className="row">
             {link.status === 'error' && (
@@ -127,15 +152,12 @@ function LinkBody({ link, onLink, onImportCopy }: Props) {
 
     case 'ready': {
       const { scan } = link
+      const name = link.fileName ?? '.bashrc'
       return (
         <div className="stack">
-          <FileRow name={link.fileName ?? '.bashrc'} at={link.readAt} verb="read" />
-          {link.fileName && link.fileName !== '.bashrc' && (
-            <p className="callout callout-warn">
-              <AlertTriangle size={14} aria-hidden="true" /> Git Bash reads <code>.bashrc</code>; this file is named{' '}
-              <code>{link.fileName}</code>.
-            </p>
-          )}
+          <FileRow name={name} at={link.readAt} verb="read" />
+          {pathLine}
+          {name !== '.bashrc' && <WrongName name={name} onRelink={() => onLink('existing')} />}
           {scan?.blockProblem && (
             <p className="callout callout-error">{describeBlockProblem(scan.blockProblem)} Fix it in the Raw tab.</p>
           )}
@@ -179,6 +201,76 @@ function FileRow({ name, at, verb }: { name: string; at: number | null; verb: st
           {verb} {formatClock(at)}
         </span>
       )}
+    </div>
+  )
+}
+
+/** The file's location: a guess until the user corrects it, since browsers don't reveal folders. */
+function PathLine({ path, assumed, onSave }: { path: string; assumed: boolean; onSave: (label: string) => void }) {
+  const [draft, setDraft] = useState<string | null>(null)
+
+  if (draft !== null) {
+    const submit = (event: FormEvent) => {
+      event.preventDefault()
+      onSave(draft)
+      setDraft(null)
+    }
+    return (
+      <form className="path-line" onSubmit={submit}>
+        <input
+          className="input input-sm"
+          data-1p-ignore
+          data-lpignore="true"
+          value={draft}
+          autoFocus
+          spellCheck={false}
+          aria-label="Full path of this file on this PC"
+          placeholder="C:\Users\you\.bashrc"
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setDraft(null)
+          }}
+        />
+        <button type="submit" className="btn btn-sm">
+          Save
+        </button>
+      </form>
+    )
+  }
+
+  return (
+    <div className="path-line">
+      <span className="field-label">Path</span>
+      <CopyChip text={path} />
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Edit the path"
+        title="Browsers don't reveal folders. Correct this if the file lives somewhere else."
+        onClick={() => setDraft(path)}
+      >
+        <Pencil size={14} />
+      </button>
+      {assumed && <span className="hint path-note">Assumed to be your home folder; edit if it's elsewhere.</span>}
+    </div>
+  )
+}
+
+function WrongName({ name, onRelink }: { name: string; onRelink: () => void }) {
+  return (
+    <div className="callout callout-warn stack-tight">
+      <p>
+        <AlertTriangle size={14} aria-hidden="true" /> Git Bash only reads <code>.bashrc</code>, but this file is
+        named <code>{name}</code>. Chrome drops the leading dot from new-file names.
+      </p>
+      <p>
+        Rename it in Git Bash: <CopyChip text={`mv ~/${shellName(name)} ~/.bashrc`} />
+      </p>
+      <div className="row">
+        <button type="button" className="btn btn-sm" onClick={onRelink}>
+          <Link2 size={14} /> Link the renamed .bashrc
+        </button>
+      </div>
     </div>
   )
 }

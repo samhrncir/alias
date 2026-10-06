@@ -47,6 +47,21 @@ export function checkCommand(command: string): CommandProblem | null {
   return null
 }
 
+const CMD_VARIABLE = /%([A-Za-z_][A-Za-z0-9_]+)%/
+
+/**
+ * A heads-up about Windows cmd habits bash won't understand, like
+ * %USERPROFILE%. Not an error: the alias is valid bash, it just won't do
+ * what was meant.
+ */
+export function commandWarning(command: string): string | null {
+  const match = CMD_VARIABLE.exec(command)
+  if (!match) return null
+  const name = match[1] ?? ''
+  const instead = name.toUpperCase() === 'USERPROFILE' ? '~ (your home folder)' : `$${name}`
+  return `Bash doesn't expand ${match[0]}; that's Windows cmd syntax. Use ${instead} instead.`
+}
+
 /** Collapses whitespace so text can live in a one-line `# comment`. */
 export function oneLine(text: string): string {
   return text.replace(/\s+/g, ' ').trim()

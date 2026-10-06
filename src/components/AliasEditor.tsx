@@ -6,6 +6,7 @@ import {
   NAME_MAX,
   checkCommand,
   checkName,
+  commandWarning,
   oneLine,
   renderAliasLine,
   type CommandProblem,
@@ -53,6 +54,7 @@ export function AliasEditor({ initial, takenNames, onSave, onClose }: Props) {
       : null
   const commandProblem = checkCommand(command)
   const commandError = commandProblem ? COMMAND_MESSAGE[commandProblem] : null
+  const warning = commandError ? null : commandWarning(command)
   const showName = submitted || name.length > 0
   const showCommand = submitted || command.length > 0
   const preview = renderAliasLine({ name: name || 'name', command: command || '…', description, enabled })
@@ -79,6 +81,8 @@ export function AliasEditor({ initial, takenNames, onSave, onClose }: Props) {
           <input
             data-autofocus
             className="input"
+            data-1p-ignore
+            data-lpignore="true"
             value={name}
             maxLength={NAME_MAX}
             placeholder="gs"
@@ -92,9 +96,12 @@ export function AliasEditor({ initial, takenNames, onSave, onClose }: Props) {
           label="Command"
           hint="Runs when you type the name; anything you type after the name is passed along."
           error={showCommand ? commandError : null}
+          warning={warning}
         >
           <input
             className="input"
+            data-1p-ignore
+            data-lpignore="true"
             value={command}
             maxLength={COMMAND_MAX}
             placeholder="git status -sb"
@@ -107,6 +114,8 @@ export function AliasEditor({ initial, takenNames, onSave, onClose }: Props) {
         <Field label="Note (optional)" hint="Saved as a comment next to the alias.">
           <input
             className="input"
+            data-1p-ignore
+            data-lpignore="true"
             value={description}
             maxLength={DESCRIPTION_MAX}
             placeholder="short status"
@@ -138,12 +147,26 @@ export function AliasEditor({ initial, takenNames, onSave, onClose }: Props) {
   )
 }
 
-function Field({ label, hint, error, children }: { label: string; hint: string; error?: string | null; children: ReactNode }) {
+interface FieldProps {
+  label: string
+  hint: string
+  error?: string | null
+  warning?: string | null
+  children: ReactNode
+}
+
+function Field({ label, hint, error, warning, children }: FieldProps) {
   return (
     <label className="field">
       <span className="field-label">{label}</span>
       {children}
-      {error ? <span className="field-error">{error}</span> : <span className="field-hint">{hint}</span>}
+      {error ? (
+        <span className="field-error">{error}</span>
+      ) : warning ? (
+        <span className="field-warn">{warning}</span>
+      ) : (
+        <span className="field-hint">{hint}</span>
+      )}
     </label>
   )
 }

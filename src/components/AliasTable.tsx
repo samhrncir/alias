@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import { Plus, Search, Sparkles, Trash2 } from 'lucide-react'
 import type { LibraryStatus } from '../hooks/useLibrary'
 import type { Alias } from '../types'
+import { commandWarning } from '../utils/bashrc'
 import type { SyncState } from '../utils/merge'
 import { Switch } from './Switch'
 
@@ -45,6 +46,8 @@ export function AliasTable(props: Props) {
           <input
             ref={searchRef}
             className="input"
+            data-1p-ignore
+            data-lpignore="true"
             type="search"
             value={query}
             placeholder="Search name, command or note   /"
@@ -100,6 +103,7 @@ interface RowProps {
 }
 
 function AliasRow({ alias, state, onEdit, onToggle, onDelete }: RowProps) {
+  const warning = commandWarning(alias.command)
   return (
     <li className={`alias-row${alias.enabled ? '' : ' is-off'}`}>
       <button
@@ -116,6 +120,11 @@ function AliasRow({ alias, state, onEdit, onToggle, onDelete }: RowProps) {
         {alias.description && <span className="alias-desc">{alias.description}</span>}
       </button>
       <div className="alias-meta">
+        {warning && (
+          <span className="badge badge-warn" title={warning}>
+            cmd syntax
+          </span>
+        )}
         {state === 'new' && <span className="badge badge-new">not in file</span>}
         {state === 'edited' && <span className="badge badge-edited">edited</span>}
         <Switch

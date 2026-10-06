@@ -8,6 +8,7 @@ import {
   applyBlock,
   checkCommand,
   checkName,
+  commandWarning,
   normalize,
   parseAliasLine,
   quoteSingle,
@@ -61,6 +62,20 @@ describe('checkCommand', () => {
   it('accepts surrounding whitespace, which bash treats as meaningful', () => {
     expect(checkCommand('sudo ')).toBeNull()
   })
+})
+
+describe('commandWarning', () => {
+  it('flags Windows cmd variables and names the bash equivalent', () => {
+    expect(commandWarning('cd %USERPROFILE%/ai-coding')).toContain('~ (your home folder)')
+    expect(commandWarning('echo %PATH%')).toContain('$PATH')
+  })
+
+  it.each(["git log --format='%h %s'", 'git log --format=%h%n', 'date +%Y-%m-%d', 'printf "%s\\n" x', 'cd ~/code'])(
+    'leaves %j alone',
+    (command) => {
+      expect(commandWarning(command)).toBeNull()
+    },
+  )
 })
 
 describe('quoteSingle', () => {

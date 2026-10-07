@@ -3,6 +3,7 @@ import { Copy, Download, HardDriveDownload } from 'lucide-react'
 import type { Alias } from '../types'
 import { renderBlock, tokenizeRenderedLine } from '../utils/bashrc'
 import type { BlockComparison } from '../utils/merge'
+import { CopyChip } from './CopyChip'
 
 interface Props {
   aliases: Alias[]
@@ -83,6 +84,9 @@ export function BlockPanel({ aliases, comparison, pending, writeBlocker, manual,
         <button type="button" className="btn btn-sm" onClick={onCopy}>
           <Copy size={14} /> Copy block
         </button>
+        <p className="hint">
+          Reload shells that are already open with <CopyChip text="source ~/.bashrc" />
+        </p>
       </div>
     </section>
   )
